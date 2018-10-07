@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 from setuptools import setup
-from os.path import join, dirname
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(name='ryanair-py',
-      version='0.0.1',
+      version='0.0.4',
       description='A module which allows you to retrieve the cheapest flights, with/out return flights, within a fixed set of dates.',
-      long_description=open(join(dirname(__file__), 'README.md')).read(),
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       author='Ciarán Ó hAoláin',
       author_email='ciaran@cohaolain.ie',
       url='https://github.com/cohaolain/ryanairPython',

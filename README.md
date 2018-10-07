@@ -1,10 +1,11 @@
 # Ryanair Python
+Written by Ciarán Ó hAoláin, 2018.  
 This module allows you to retrieve the cheapest flights, with/out return flights, within a fixed set of dates.  
 This is done directly through Ryanair's API and requires an API Key supplied by Ryanair.  
 ### Installation
 Run the following command in the terminal:
 ```
-pip install ryanair
+pip install ryanair-py
 ```
 ### Initialisation
 Creating an instance is done as follows:
