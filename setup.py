@@ -6,7 +6,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name='ryanair-py',
-      version='0.0.5',
+      version='0.0.6',
       description='A module which allows you to retrieve the cheapest flights, with/out return flights, within a fixed set of dates.',
       long_description=long_description,
       long_description_content_type='text/markdown',
