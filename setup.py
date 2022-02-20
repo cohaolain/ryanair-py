@@ -19,5 +19,6 @@ setup(name='ryanair-py',
           "Programming Language :: Python :: 3",
           "Operating System :: OS Independent",
       ],
-      install_requires=['requests']
+      install_requires=['requests'],
+      package_data={'ryanair': ['airports.csv']}
       )
