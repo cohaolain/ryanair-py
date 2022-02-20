@@ -5,6 +5,8 @@
 ### Added
 
 - Added a changelog :)
+- Some airport utils (`ryanair.airport_utils`), that allow you to compute the haversine distance between two airports (by IATA code), or from a `Flight` object.
+  - Airport data in CSV format sourced from [a gist here](https://gist.github.com/chrisgacsal/070379c59d25c235baaa88ec61472b28).
 
 ### Fixed
 
