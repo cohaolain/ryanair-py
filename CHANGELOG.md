@@ -1,5 +1,9 @@
 # Changelog
 
+# [Unreleased]
+
+- Allow an optional argument to `get_flights` specifying a specific destination country code.
+
 # [v1.0.1] - 2022.02.20
 
 ### Added
