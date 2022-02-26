@@ -2,7 +2,11 @@
 
 # [Unreleased]
 
+### Added
 - Allow an optional argument to `get_flights` specifying a specific destination country code.
+
+### Fixed
+- Update repo URL so packages managers have a working source reference
 
 # [v1.0.1] - 2022.02.20
 

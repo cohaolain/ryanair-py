@@ -13,7 +13,7 @@ setup(name='ryanair-py',
       long_description_content_type='text/markdown',
       author='Ciarán Ó hAoláin',
       author_email='ciaran@cohaolain.ie',
-      url='https://github.com/cohaolain/ryanairPython',
+      url='https://github.com/cohaolain/ryanair-py',
       packages=['ryanair'],
       classifiers=[
           "Programming Language :: Python :: 3",
