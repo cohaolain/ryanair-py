@@ -15,7 +15,7 @@ class Ryanair:
     REPEAT_WAIT_SECONDS = 10
 
     def __init__(self, currency):
-        def get_flights(airport, date_from, date_to):
+        def get_flights(airport, date_from, date_to, destination_country=None):
             query_url = ''.join((Ryanair.BASE_API_URL,
                                  "farfnd/v4/oneWayFares"))
 
@@ -24,6 +24,8 @@ class Ryanair:
                 "outboundDepartureDateFrom": self._format_date_for_api(date_from),
                 "outboundDepartureDateTo": self._format_date_for_api(date_to),
                 "currency": self.currency}
+            if destination_country:
+                params['arrivalCountryCode'] = destination_country
 
             response = _safe_query_fares(query_url, params)
 
