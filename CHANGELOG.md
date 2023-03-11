@@ -1,6 +1,6 @@
 # Changelog
 
-# [Unreleased v2.0.0]
+# [v2.0.0] - 2023.03.11
 
 ### Added
 - Ability to use the _availability_ endpoint. Now we aren't confined to getting the _cheapest_ flight each day - we can just get them all.
