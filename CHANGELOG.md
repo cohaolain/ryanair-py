@@ -1,5 +1,9 @@
 # Changelog
 
+# [v2.0.1] - 2023.03.11
+### Fixed
+- Module description to account for new functionality.
+
 # [v2.0.0] - 2023.03.11
 
 ### Added
