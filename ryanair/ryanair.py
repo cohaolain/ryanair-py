@@ -46,6 +46,7 @@ class Ryanair:
                              custom_params=None,
                              departure_time_from: Union[str, time] = "00:00",
                              departure_time_to: Union[str, time] = "23:59",
+                             max_price: int = None
                              ):
         query_url = ''.join((Ryanair.BASE_SERVICES_API_URL,
                              "oneWayFares"))
@@ -60,6 +61,8 @@ class Ryanair:
         }
         if destination_country:
             params['arrivalCountryCode'] = destination_country
+        if max_price:
+            params['priceValueTo'] = max_price
         if custom_params:
             params.update(custom_params)
 
@@ -82,6 +85,7 @@ class Ryanair:
                                     outbound_departure_time_to: Union[str, time] = "23:59",
                                     inbound_departure_time_from: Union[str, time] = "00:00",
                                     inbound_departure_time_to: Union[str, time] = "23:59",
+                                    max_price: int = None
                                     ):
         query_url = ''.join((Ryanair.BASE_SERVICES_API_URL,
                              "roundTripFares"))
@@ -100,6 +104,8 @@ class Ryanair:
         }
         if destination_country:
             params['arrivalCountryCode'] = destination_country
+        if max_price:
+            params['priceValueTo'] = max_price
         if custom_params:
             params.update(custom_params)
 
