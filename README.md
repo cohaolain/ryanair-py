@@ -4,6 +4,7 @@ This module allows you to retrieve either:
 1) The cheapest flights, with or without return flights, within a fixed set of dates.
 or
 2) All available flights between two locations, on a given date
+
 This is done directly through Ryanair's API, and does not require an API key.  
 ## Installation
 Run the following command in the terminal:
