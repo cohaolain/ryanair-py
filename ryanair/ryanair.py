@@ -6,10 +6,11 @@ or
 This is done directly through Ryanair's API, and does not require an API key.
 """
 import logging
+from typing import Union
 
 import backoff
 import requests
-from datetime import datetime, date as dt_date
+from datetime import datetime, date, time
 from time import sleep
 
 from deprecated import deprecated
@@ -42,7 +43,10 @@ class Ryanair:
                                                 return_date_from, return_date_to, destination_country)
 
     def get_cheapest_flights(self, airport, date_from, date_to, destination_country=None,
-                             custom_params=None):
+                             custom_params=None,
+                             departure_time_from: Union[str, time] = "00:00",
+                             departure_time_to: Union[str, time] = "23:59",
+                             ):
         query_url = ''.join((Ryanair.BASE_SERVICES_API_URL,
                              "oneWayFares"))
 
@@ -50,7 +54,10 @@ class Ryanair:
             "departureAirportIataCode": airport,
             "outboundDepartureDateFrom": self._format_date_for_api(date_from),
             "outboundDepartureDateTo": self._format_date_for_api(date_to),
-            "currency": self.currency}
+            "currency": self.currency,
+            "outboundDepartureTimeFrom": self._format_time_for_api(departure_time_from),
+            "outboundDepartureTimeTo": self._format_time_for_api(departure_time_to)
+        }
         if destination_country:
             params['arrivalCountryCode'] = destination_country
         if custom_params:
@@ -70,7 +77,12 @@ class Ryanair:
     def get_cheapest_return_flights(self, source_airport, date_from, date_to,
                                     return_date_from, return_date_to,
                                     destination_country=None,
-                                    custom_params=None):
+                                    custom_params=None,
+                                    outbound_departure_time_from: Union[str, time] = "00:00",
+                                    outbound_departure_time_to: Union[str, time] = "23:59",
+                                    inbound_departure_time_from: Union[str, time] = "00:00",
+                                    inbound_departure_time_to: Union[str, time] = "23:59",
+                                    ):
         query_url = ''.join((Ryanair.BASE_SERVICES_API_URL,
                              "roundTripFares"))
 
@@ -80,7 +92,12 @@ class Ryanair:
             "outboundDepartureDateTo": self._format_date_for_api(date_to),
             "inboundDepartureDateFrom": self._format_date_for_api(return_date_from),
             "inboundDepartureDateTo": self._format_date_for_api(return_date_to),
-            "currency": self.currency}
+            "currency": self.currency,
+            "outboundDepartureTimeFrom": self._format_time_for_api(outbound_departure_time_from),
+            "outboundDepartureTimeTo": self._format_time_for_api(outbound_departure_time_to),
+            "inboundDepartureTimeFrom": self._format_time_for_api(inbound_departure_time_from),
+            "inboundDepartureTimeTo": self._format_time_for_api(inbound_departure_time_to)
+        }
         if destination_country:
             params['arrivalCountryCode'] = destination_country
         if custom_params:
@@ -98,8 +115,9 @@ class Ryanair:
         else:
             return []
 
-    def get_all_flights(self, origin_airport, date, destination,
-                        locale="en-ie", origin_is_mac=False, destination_is_mac=False, custom_params=None):
+    def get_all_flights(self, origin_airport, date_out, destination,
+                        locale="en-ie", origin_is_mac=False, destination_is_mac=False,
+                        custom_params=None):
         query_url = ''.join((Ryanair.BASE_AVAILABILITY_API_URL, f"{locale}/availability"))
 
         params = {
@@ -109,7 +127,7 @@ class Ryanair:
             "CHD": 0,
             "INF": 0,
 
-            "DateOut": self._format_date_for_api(date),
+            "DateOut": self._format_date_for_api(date_out),
             "DateIn": "",
 
             "Origin": origin_airport,
@@ -192,15 +210,23 @@ class Ryanair:
                       )
 
     @staticmethod
-    def _format_date_for_api(date):
-        if isinstance(date, str):
-            return date
+    def _format_date_for_api(d: Union[datetime, date, str]):
+        if isinstance(d, str):
+            return d
 
-        if isinstance(date, datetime):
-            return date.date().isoformat()
+        if isinstance(d, datetime):
+            return d.date().isoformat()
 
-        if isinstance(date, dt_date):
-            return date.isoformat()
+        if isinstance(d, date):
+            return d.isoformat()
+
+    @staticmethod
+    def _format_time_for_api(t):
+        if isinstance(t, str):
+            return t
+
+        if isinstance(t, time):
+            return t.strftime("%H:%M")
 
     @property
     def num_queries(self):
