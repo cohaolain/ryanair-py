@@ -1,6 +1,6 @@
 # Changelog
 
-# [Unreleased]
+# [v2.1.0] - 2023.03.12
 ### Added
 - Added flight departure time filter keyword arguments to `get_cheapest_flights` and `get_cheapest_return_flights`.
 
