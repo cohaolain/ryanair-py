@@ -16,6 +16,12 @@ requests for results in specific currencies.
 ### Fixed
 - Incorrect date format used for logs.
 
+### Changed
+- It is now _optional_ to specify `currency` when creating an instance of the library.
+  - If not specified, the API decides the return currency (normally the currency of the departure country).
+  - If an API, such as the availability / `get_all_flights` API, doesn't support it anyway, this will be ignored,
+except for the purposes of deciding whether a warning should be shown, where the currencies mismatch.
+
 # [v2.1.0] - 2023.03.12
 ### Added
 - Added flight departure time filter keyword arguments to `get_cheapest_flights` and `get_cheapest_return_flights`.
