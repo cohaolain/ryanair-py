@@ -4,6 +4,17 @@
 ### Added
 - Ability to constrain the max price of retrieved flights/trips from the API when 
 using `get_cheapest_flights` or `get_cheapest_return_flights` via the `max_price` kwarg.
+- Added `currency` field to the `Flight` object.
+  - Availability API method `get_all_flights` does not support specifying currency (it is always the currency of the
+  departure country), but this was not documented. `Flight` will now allow the user to see what currency has been
+returned.
+- Log a warning when returned currency doesn't match the configured value.
+  - Primarily to warn users using the `get_all_flights` API that the response isn't as configured.
+  - Might also be useful if the `get_cheapest_flights` and `get_cheapest_return_flights` APIs ever stop respecting
+requests for results in specific currencies.
+
+### Fixed
+- Incorrect date format used for logs.
 
 # [v2.1.0] - 2023.03.12
 ### Added
