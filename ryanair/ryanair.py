@@ -6,19 +6,23 @@ or
 This is done directly through Ryanair's API, and does not require an API key.
 """
 import logging
-from typing import Union
+from datetime import datetime, date, time
+from typing import Union, Optional
 
 import backoff
 import requests
-from datetime import datetime, date, time
-from time import sleep
-
 from deprecated import deprecated
 
 from ryanair.types import Flight, Trip
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s.%(msecs)03d %(levelname)s:%(message)s', datefmt="%m/%d/%Y %I:%M:%S")
+logger = logging.getLogger("ryanair")
+logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s.%(msecs)03d %(levelname)s:%(message)s', datefmt="%Y-%m-%d %I:%M:%S")
+
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 
 # noinspection PyBroadException
@@ -26,7 +30,7 @@ class Ryanair:
     BASE_SERVICES_API_URL = "https://services-api.ryanair.com/farfnd/v4/"
     BASE_AVAILABILITY_API_URL = "https://www.ryanair.com/api/booking/v4/"
 
-    def __init__(self, currency):
+    def __init__(self, currency: Optional[str] = None):
         self.currency = currency
 
         self._num_queries = 0
@@ -55,10 +59,11 @@ class Ryanair:
             "departureAirportIataCode": airport,
             "outboundDepartureDateFrom": self._format_date_for_api(date_from),
             "outboundDepartureDateTo": self._format_date_for_api(date_to),
-            "currency": self.currency,
             "outboundDepartureTimeFrom": self._format_time_for_api(departure_time_from),
             "outboundDepartureTimeTo": self._format_time_for_api(departure_time_to)
         }
+        if self.currency:
+            params['currency'] = self.currency
         if destination_country:
             params['arrivalCountryCode'] = destination_country
         if max_price:
@@ -69,7 +74,7 @@ class Ryanair:
         try:
             response = self._retryable_query(query_url, params)["fares"]
         except Exception:
-            logging.exception(f"Failed to parse response when querying {query_url}")
+            logger.exception(f"Failed to parse response when querying {query_url}")
             return []
 
         if response:
@@ -112,7 +117,7 @@ class Ryanair:
         try:
             response = self._retryable_query(query_url, params)["fares"]
         except Exception as e:
-            logging.exception(f"Failed to parse response when querying {query_url}")
+            logger.exception(f"Failed to parse response when querying {query_url}")
             return []
 
         if response:
@@ -159,30 +164,39 @@ class Ryanair:
             params.update(custom_params)
 
         try:
-            response = self._retryable_query(query_url, params)["trips"][0]
-            flights = response['dates'][0]['flights']
+            response = self._retryable_query(query_url, params)
+            currency = response["currency"]
+            trip = response["trips"][0]
+            flights = trip['dates'][0]['flights']
             if flights:
+                if self.currency and self.currency != currency:
+                    logger.warning(f"Configured to fetch fares in {self.currency} but availability API doesn't support"
+                                   f" specifying the currency, so it responded with fares in {currency}")
+
                 return [self._parse_all_flights_availability_result_as_flight(flight,
-                                                                              response['originName'],
-                                                                              response['destinationName'])
+                                                                              trip['originName'],
+                                                                              trip['destinationName'],
+                                                                              currency)
                         for flight in flights]
         except Exception:
-            logging.exception(f"Failed to parse response when querying {query_url}")
+            logger.exception(f"Failed to parse response when querying {query_url}")
             return []
 
     @staticmethod
     def _on_query_error(e):
-        logging.exception(f"Gave up retrying query, last exception was {e}")
+        logger.exception(f"Gave up retrying query, last exception was {e}")
 
-    @backoff.on_exception(backoff.expo, Exception, max_tries=5, logger=logging.getLogger(), on_giveup=_on_query_error,
+    @backoff.on_exception(backoff.expo, Exception, max_tries=5, logger=logger, on_giveup=_on_query_error,
                           raise_on_giveup=False)
     def _retryable_query(self, url, params):
         self._num_queries += 1
 
         return requests.get(url, params=params).json()
 
-    @staticmethod
-    def _parse_cheapest_flight(flight):
+    def _parse_cheapest_flight(self, flight):
+        currency = flight['price']['currencyCode']
+        if self.currency and self.currency != currency:
+            logger.warning(f"Requested cheapest flights in {self.currency} but API responded with fares in {currency}")
         return Flight(
             origin=flight['departureAirport']['iataCode'],
             originFull=', '.join((flight['departureAirport']['name'], flight['departureAirport']['countryName'])),
@@ -190,7 +204,8 @@ class Ryanair:
             destinationFull=', '.join((flight['arrivalAirport']['name'], flight['arrivalAirport']['countryName'])),
             departureTime=datetime.fromisoformat(flight['departureDate']),
             flightNumber=f"{flight['flightNumber'][:2]} {flight['flightNumber'][2:]}",
-            price=flight['price']['value']
+            price=flight['price']['value'],
+            currency=currency
         )
 
     def _parse_cheapest_return_flights_as_trip(self, outbound, inbound):
@@ -204,11 +219,12 @@ class Ryanair:
         )
 
     @staticmethod
-    def _parse_all_flights_availability_result_as_flight(response, origin_full, destination_full):
+    def _parse_all_flights_availability_result_as_flight(response, origin_full, destination_full, currency):
         return Flight(departureTime=datetime.fromisoformat(response['time'][0]),
                       flightNumber=response['flightNumber'],
                       price=response['regularFare']['fares'][0]['amount'] if response['faresLeft'] != 0 else float(
                           'inf'),
+                      currency=currency,
                       origin=response['segments'][0]['origin'],
                       originFull=origin_full,
                       destination=response['segments'][0]['destination'],
