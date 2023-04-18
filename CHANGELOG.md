@@ -1,6 +1,6 @@
 # Changelog
 
-# [Unreleased]
+# [v2.2.0] - 2023.04.18
 ### Added
 - Ability to constrain the max price of retrieved flights/trips from the API when 
 using `get_cheapest_flights` or `get_cheapest_return_flights` via the `max_price` kwarg.
