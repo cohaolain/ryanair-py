@@ -25,6 +25,16 @@ console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
 
+class RyanairException(Exception):
+    def __init__(self, message):
+        super().__init__(f"Ryanair API: {message}")
+
+
+class AvailabilityException(RyanairException):
+    def __init__(self):
+        super().__init__("Availability API declines to provide a result")
+
+
 # noinspection PyBroadException
 class Ryanair:
     BASE_SERVICES_API_URL = "https://services-api.ryanair.com/farfnd/v4/"
@@ -165,6 +175,8 @@ class Ryanair:
 
         try:
             response = self._retryable_query(query_url, params)
+            if 'message' in response and response['message'] == 'Availability declined':
+                raise AvailabilityException
             currency = response["currency"]
             trip = response["trips"][0]
             flights = trip['dates'][0]['flights']
@@ -178,6 +190,8 @@ class Ryanair:
                                                                               trip['destinationName'],
                                                                               currency)
                         for flight in flights]
+        except RyanairException as err:
+            logger.error(err)
         except Exception:
             logger.exception(f"Failed to parse response when querying {query_url}")
             return []
