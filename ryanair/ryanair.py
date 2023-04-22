@@ -179,7 +179,7 @@ class Ryanair:
                                                                               currency)
                         for flight in flights]
         except Exception:
-            logger.exception(f"Failed to parse response when querying {query_url}")
+            logger.exception(f"Failed to parse response when querying {query_url} with parameters {params}")
             return []
 
     @staticmethod
