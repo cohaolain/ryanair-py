@@ -98,12 +98,13 @@ class Ryanair:
             "outboundDepartureDateTo": self._format_date_for_api(date_to),
             "inboundDepartureDateFrom": self._format_date_for_api(return_date_from),
             "inboundDepartureDateTo": self._format_date_for_api(return_date_to),
-            "currency": self.currency,
             "outboundDepartureTimeFrom": self._format_time_for_api(outbound_departure_time_from),
             "outboundDepartureTimeTo": self._format_time_for_api(outbound_departure_time_to),
             "inboundDepartureTimeFrom": self._format_time_for_api(inbound_departure_time_from),
             "inboundDepartureTimeTo": self._format_time_for_api(inbound_departure_time_to)
         }
+        if self.currency:
+            params['currency'] = self.currency
         if destination_country:
             params['arrivalCountryCode'] = destination_country
         if max_price:

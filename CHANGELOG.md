@@ -10,6 +10,10 @@ in case you only care about the cheapest flight to a single airport.
 - When the library hits an exception parsing an API response, it will now also log the original query params.
   - Thanks to [@dolohow](https://www.github.com/dolohow) for their first contribution!
 
+### Fixed
+- `currency` is now only added as a parameter on calls to `get_cheapest_return_flights` whenit is configured, identical
+to `get_cheapest_flights`.
+
 # [v2.2.0] - 2023.04.18
 ### Added
 - Ability to constrain the max price of retrieved flights/trips from the API when 
