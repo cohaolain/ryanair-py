@@ -46,11 +46,13 @@ class Ryanair:
         return self.get_cheapest_return_flights(source_airport, date_from, date_to,
                                                 return_date_from, return_date_to, destination_country)
 
-    def get_cheapest_flights(self, airport, date_from, date_to, destination_country=None,
-                             custom_params=None,
+    def get_cheapest_flights(self, airport: str, date_from: Union[datetime, date, str],
+                             date_to: Union[datetime, date, str], destination_country: Optional[str] = None,
+                             custom_params: Optional[dict] = None,
                              departure_time_from: Union[str, time] = "00:00",
                              departure_time_to: Union[str, time] = "23:59",
-                             max_price: int = None
+                             max_price: Optional[int] = None,
+                             destination_airport: Optional[str] = None
                              ):
         query_url = ''.join((Ryanair.BASE_SERVICES_API_URL,
                              "oneWayFares"))
@@ -68,6 +70,8 @@ class Ryanair:
             params['arrivalCountryCode'] = destination_country
         if max_price:
             params['priceValueTo'] = max_price
+        if destination_airport:
+            params['arrivalAirportIataCode'] = destination_airport
         if custom_params:
             params.update(custom_params)
 
@@ -82,15 +86,19 @@ class Ryanair:
 
         return []
 
-    def get_cheapest_return_flights(self, source_airport, date_from, date_to,
-                                    return_date_from, return_date_to,
-                                    destination_country=None,
-                                    custom_params=None,
+    def get_cheapest_return_flights(self, source_airport: str,
+                                    date_from: Union[datetime, date, str],
+                                    date_to: Union[datetime, date, str],
+                                    return_date_from: Union[datetime, date, str],
+                                    return_date_to: Union[datetime, date, str],
+                                    destination_country: Optional[str] = None,
+                                    custom_params: Optional[dict] = None,
                                     outbound_departure_time_from: Union[str, time] = "00:00",
                                     outbound_departure_time_to: Union[str, time] = "23:59",
                                     inbound_departure_time_from: Union[str, time] = "00:00",
                                     inbound_departure_time_to: Union[str, time] = "23:59",
-                                    max_price: int = None
+                                    max_price: Optional[int] = None,
+                                    destination_airport: Optional[str] = None
                                     ):
         query_url = ''.join((Ryanair.BASE_SERVICES_API_URL,
                              "roundTripFares"))
@@ -111,6 +119,8 @@ class Ryanair:
             params['arrivalCountryCode'] = destination_country
         if max_price:
             params['priceValueTo'] = max_price
+        if destination_airport:
+            params['arrivalAirportIataCode'] = destination_airport
         if custom_params:
             params.update(custom_params)
 
@@ -126,9 +136,9 @@ class Ryanair:
         else:
             return []
 
-    def get_all_flights(self, origin_airport, date_out, destination,
-                        locale="en-ie", origin_is_mac=False, destination_is_mac=False,
-                        custom_params=None):
+    def get_all_flights(self, origin_airport: str, date_out: Union[datetime, date, str], destination: str,
+                        locale: str = "en-ie", origin_is_mac: bool = False, destination_is_mac: bool = False,
+                        custom_params: Optional[dict] = None):
         query_url = ''.join((Ryanair.BASE_AVAILABILITY_API_URL, f"{locale}/availability"))
 
         params = {
@@ -243,7 +253,7 @@ class Ryanair:
             return d.isoformat()
 
     @staticmethod
-    def _format_time_for_api(t):
+    def _format_time_for_api(t: Union[time, str]):
         if isinstance(t, str):
             return t
 
