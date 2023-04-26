@@ -1,5 +1,15 @@
 # Changelog
 
+# [Unreleased]
+### Added
+- Optional `destination_airport` keyword argument to the cheap flights endpoints, 
+in case you only care about the cheapest flight to a single airport.
+- Improved type hints on the main API methods.
+
+### Changed
+- When the library hits an exception parsing an API response, it will now also log the original query params.
+  - Thanks to [@dolohow](https://www.github.com/dolohow) for their first contribution!
+
 # [v2.2.0] - 2023.04.18
 ### Added
 - Ability to constrain the max price of retrieved flights/trips from the API when 
