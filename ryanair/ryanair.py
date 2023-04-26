@@ -35,17 +35,6 @@ class Ryanair:
 
         self._num_queries = 0
 
-    @deprecated(version="2.0.0", reason="deprecated in favour of get_cheapest_flights", action="once")
-    def get_flights(self, airport, date_from, date_to, destination_country=None):
-        return self.get_cheapest_flights(airport, date_from, date_to, destination_country)
-
-    @deprecated(version="2.0.0", reason="deprecated in favour of get_cheapest_return_flights", action="once")
-    def get_return_flights(self, source_airport, date_from, date_to,
-                           return_date_from, return_date_to,
-                           destination_country=None):
-        return self.get_cheapest_return_flights(source_airport, date_from, date_to,
-                                                return_date_from, return_date_to, destination_country)
-
     def get_cheapest_flights(self, airport: str, date_from: Union[datetime, date, str],
                              date_to: Union[datetime, date, str], destination_country: Optional[str] = None,
                              custom_params: Optional[dict] = None,
@@ -263,3 +252,14 @@ class Ryanair:
     @property
     def num_queries(self):
         return self._num_queries
+
+    @deprecated(version="2.0.0", reason="deprecated in favour of get_cheapest_flights", action="once")
+    def get_flights(self, airport, date_from, date_to, destination_country=None):
+        return self.get_cheapest_flights(airport, date_from, date_to, destination_country)
+
+    @deprecated(version="2.0.0", reason="deprecated in favour of get_cheapest_return_flights", action="once")
+    def get_return_flights(self, source_airport, date_from, date_to,
+                           return_date_from, return_date_to,
+                           destination_country=None):
+        return self.get_cheapest_return_flights(source_airport, date_from, date_to,
+                                                return_date_from, return_date_to, destination_country)
