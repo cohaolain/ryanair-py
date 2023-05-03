@@ -5,10 +5,16 @@
 - Optional `destination_airport` keyword argument to the cheap flights endpoints, 
 in case you only care about the cheapest flight to a single airport.
 - Improved type hints on the main API methods.
+- In regard to the availability API:
+  - Ability to grab a session cookie for use by the availability API.
+  - Exceptions raised when the availbility API declines to provide results,
+  for reasons such as rate limiting or the lack of a session cookie.  
+  - Thanks to [@dolohow](https://www.github.com/dolohow).
 
 ### Changed
 - When the library hits an exception parsing an API response, it will now also log the original query params.
-  - Thanks to [@dolohow](https://www.github.com/dolohow) for their first contribution!
+  - Thanks to [@dolohow](https://www.github.com/dolohow).
+- Small refactors, additional type hints 
 
 ### Fixed
 - `currency` is now only added as a parameter on calls to `get_cheapest_return_flights` whenit is configured, identical
