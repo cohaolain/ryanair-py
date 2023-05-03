@@ -1,5 +1,10 @@
 # Changelog
 
+# [v2.3.1] - 2023.05.03
+### Added
+- README warning note for availability API
+- README non-affiliation disclaimer.
+
 # [v2.3.0] - 2023.05.03
 ### Added
 - Optional `destination_airport` keyword argument to the cheap flights endpoints, 

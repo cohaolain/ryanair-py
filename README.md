@@ -5,7 +5,25 @@ This module allows you to retrieve either:
 or
 2) All available flights between two locations, on a given date
 
-This is done directly through Ryanair's API, and does not require an API key.  
+This is done directly through Ryanair's API, and does not require an API key.
+
+## Disclaimer
+> __DISCLAIMER:__ This library is not affiliated, endorsed, or sponsored by Ryanair or any of its affiliates.  
+> All trademarks related to Ryanair and its affiliates are owned by the relevant companies.  
+> The author(s) of this library assume no responsibility for any consequences resulting from the use of this library.  
+> The author(s) of this library also assume no liability for any damages, losses, or expenses that may arise from the use of this library.  
+> Any use of this library is entirely at the user's own risk.  
+> It is solely the user's responsibility to ensure compliance with Ryanair's terms of use and any applicable laws 
+> and regulations.  
+> The library is an independent project aimed at providing a convenient way to interact with the Ryanair API, allowing
+> individuals to find flights for personal use, and then ultimately purchase them via Ryanair's website.
+> While the author(s) will make efforts to ensure the library's functionality, they do not guarantee the accuracy,
+> completeness, or timeliness of the information provided.  
+> The author(s) do not guarantee the availability or continuity of the library, and updates may not be guaranteed.  
+> Support for this library may be provided at the author(s)'s discretion, but it is not guaranteed.  
+> Users are encouraged to report any issues or feedback to the author(s) via appropriate channels.  
+> By using this library, users acknowledge that they have read, understood, and agreed to the terms of this disclaimer.
+
 ## Installation
 Run the following command in the terminal:
 ```
@@ -52,6 +70,11 @@ print(trips[0])  # Trip(totalPrice=85.31, outbound=Flight(departureTime=datetime
 ```
 
 ### Get all available flights between two airports
+> ⚠️ __Warning:__ This API appears to be very tightly rate-limited.  
+> Use it as infrequently as possible, with some backoff if possible.  
+> Improper or over-usage could result in your IP address being blocked from using the API, 
+> __which is required to book flights__.
+
 E.g. get all available flights from Dublin to London Gatwick, or London, tomorrow:
 ```python
 from datetime import datetime, timedelta
