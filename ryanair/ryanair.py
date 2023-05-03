@@ -32,19 +32,21 @@ class RyanairException(Exception):
 
 class AvailabilityException(RyanairException):
     def __init__(self):
-        super().__init__("Availability API declines to provide a result")
+        super().__init__("Availability API declined to provide a result")
 
 
 # noinspection PyBroadException
 class Ryanair:
     BASE_SERVICES_API_URL = "https://services-api.ryanair.com/farfnd/v4/"
     BASE_AVAILABILITY_API_URL = "https://www.ryanair.com/api/booking/v4/"
+    BASE_SITE_FOR_SESSION_URL = "https://www.ryanair.com/ie/en"
 
     def __init__(self, currency: Optional[str] = None):
         self.currency = currency
 
         self._num_queries = 0
         self.session = requests.Session()
+        self._update_session_cookie()
 
     def get_cheapest_flights(self, airport: str, date_from: Union[datetime, date, str],
                              date_to: Union[datetime, date, str], destination_country: Optional[str] = None,
@@ -175,9 +177,16 @@ class Ryanair:
             params.update(custom_params)
 
         try:
+            # Try once to get a new session cookie, just in case the old one has expired.
+            # If that fails too, we should raise the exception.
             response = self._retryable_query(query_url, params)
-            if 'message' in response and response['message'] == 'Availability declined':
-                raise AvailabilityException
+            if self.check_if_availability_response_is_declined(response):
+                logger.warning("Availability API declined to respond, attempting again with a new session cookie")
+                self._update_session_cookie()
+                response = self._retryable_query(query_url, params)
+                if self.check_if_availability_response_is_declined(response):
+                    raise AvailabilityException
+
             currency = response["currency"]
             trip = response["trips"][0]
             flights = trip['dates'][0]['flights']
@@ -191,11 +200,16 @@ class Ryanair:
                                                                               trip['destinationName'],
                                                                               currency)
                         for flight in flights]
-        except RyanairException as err:
-            logger.error(err)
+        except RyanairException:
+            logger.exception(f"Failed to parse response when querying {query_url} with parameters {params}")
+            return []
         except Exception:
             logger.exception(f"Failed to parse response when querying {query_url} with parameters {params}")
             return []
+
+    @staticmethod
+    def check_if_availability_response_is_declined(response: dict) -> bool:
+        return 'message' in response and response['message'] == 'Availability declined'
 
     @staticmethod
     def _on_query_error(e):
@@ -206,9 +220,11 @@ class Ryanair:
     def _retryable_query(self, url, params):
         self._num_queries += 1
 
-        # Visit main website to get session cookies
-        self.session.get('https://www.ryanair.com/ie/en')
         return self.session.get(url, params=params).json()
+
+    def _update_session_cookie(self):
+        # Visit main website to get session cookies
+        self.session.get(Ryanair.BASE_SITE_FOR_SESSION_URL)
 
     def _parse_cheapest_flight(self, flight):
         currency = flight['price']['currencyCode']
