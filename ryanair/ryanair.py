@@ -25,32 +25,36 @@ console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
 
+class RyanairException(Exception):
+    def __init__(self, message):
+        super().__init__(f"Ryanair API: {message}")
+
+
+class AvailabilityException(RyanairException):
+    def __init__(self):
+        super().__init__("Availability API declined to provide a result")
+
+
 # noinspection PyBroadException
 class Ryanair:
     BASE_SERVICES_API_URL = "https://services-api.ryanair.com/farfnd/v4/"
     BASE_AVAILABILITY_API_URL = "https://www.ryanair.com/api/booking/v4/"
+    BASE_SITE_FOR_SESSION_URL = "https://www.ryanair.com/ie/en"
 
     def __init__(self, currency: Optional[str] = None):
         self.currency = currency
 
         self._num_queries = 0
+        self.session = requests.Session()
+        self._update_session_cookie()
 
-    @deprecated(version="2.0.0", reason="deprecated in favour of get_cheapest_flights", action="once")
-    def get_flights(self, airport, date_from, date_to, destination_country=None):
-        return self.get_cheapest_flights(airport, date_from, date_to, destination_country)
-
-    @deprecated(version="2.0.0", reason="deprecated in favour of get_cheapest_return_flights", action="once")
-    def get_return_flights(self, source_airport, date_from, date_to,
-                           return_date_from, return_date_to,
-                           destination_country=None):
-        return self.get_cheapest_return_flights(source_airport, date_from, date_to,
-                                                return_date_from, return_date_to, destination_country)
-
-    def get_cheapest_flights(self, airport, date_from, date_to, destination_country=None,
-                             custom_params=None,
+    def get_cheapest_flights(self, airport: str, date_from: Union[datetime, date, str],
+                             date_to: Union[datetime, date, str], destination_country: Optional[str] = None,
+                             custom_params: Optional[dict] = None,
                              departure_time_from: Union[str, time] = "00:00",
                              departure_time_to: Union[str, time] = "23:59",
-                             max_price: int = None
+                             max_price: Optional[int] = None,
+                             destination_airport: Optional[str] = None
                              ):
         query_url = ''.join((Ryanair.BASE_SERVICES_API_URL,
                              "oneWayFares"))
@@ -68,6 +72,8 @@ class Ryanair:
             params['arrivalCountryCode'] = destination_country
         if max_price:
             params['priceValueTo'] = max_price
+        if destination_airport:
+            params['arrivalAirportIataCode'] = destination_airport
         if custom_params:
             params.update(custom_params)
 
@@ -82,15 +88,19 @@ class Ryanair:
 
         return []
 
-    def get_cheapest_return_flights(self, source_airport, date_from, date_to,
-                                    return_date_from, return_date_to,
-                                    destination_country=None,
-                                    custom_params=None,
+    def get_cheapest_return_flights(self, source_airport: str,
+                                    date_from: Union[datetime, date, str],
+                                    date_to: Union[datetime, date, str],
+                                    return_date_from: Union[datetime, date, str],
+                                    return_date_to: Union[datetime, date, str],
+                                    destination_country: Optional[str] = None,
+                                    custom_params: Optional[dict] = None,
                                     outbound_departure_time_from: Union[str, time] = "00:00",
                                     outbound_departure_time_to: Union[str, time] = "23:59",
                                     inbound_departure_time_from: Union[str, time] = "00:00",
                                     inbound_departure_time_to: Union[str, time] = "23:59",
-                                    max_price: int = None
+                                    max_price: Optional[int] = None,
+                                    destination_airport: Optional[str] = None
                                     ):
         query_url = ''.join((Ryanair.BASE_SERVICES_API_URL,
                              "roundTripFares"))
@@ -101,16 +111,19 @@ class Ryanair:
             "outboundDepartureDateTo": self._format_date_for_api(date_to),
             "inboundDepartureDateFrom": self._format_date_for_api(return_date_from),
             "inboundDepartureDateTo": self._format_date_for_api(return_date_to),
-            "currency": self.currency,
             "outboundDepartureTimeFrom": self._format_time_for_api(outbound_departure_time_from),
             "outboundDepartureTimeTo": self._format_time_for_api(outbound_departure_time_to),
             "inboundDepartureTimeFrom": self._format_time_for_api(inbound_departure_time_from),
             "inboundDepartureTimeTo": self._format_time_for_api(inbound_departure_time_to)
         }
+        if self.currency:
+            params['currency'] = self.currency
         if destination_country:
             params['arrivalCountryCode'] = destination_country
         if max_price:
             params['priceValueTo'] = max_price
+        if destination_airport:
+            params['arrivalAirportIataCode'] = destination_airport
         if custom_params:
             params.update(custom_params)
 
@@ -126,9 +139,9 @@ class Ryanair:
         else:
             return []
 
-    def get_all_flights(self, origin_airport, date_out, destination,
-                        locale="en-ie", origin_is_mac=False, destination_is_mac=False,
-                        custom_params=None):
+    def get_all_flights(self, origin_airport: str, date_out: Union[datetime, date, str], destination: str,
+                        locale: str = "en-ie", origin_is_mac: bool = False, destination_is_mac: bool = False,
+                        custom_params: Optional[dict] = None):
         query_url = ''.join((Ryanair.BASE_AVAILABILITY_API_URL, f"{locale}/availability"))
 
         params = {
@@ -164,7 +177,16 @@ class Ryanair:
             params.update(custom_params)
 
         try:
+            # Try once to get a new session cookie, just in case the old one has expired.
+            # If that fails too, we should raise the exception.
             response = self._retryable_query(query_url, params)
+            if self.check_if_availability_response_is_declined(response):
+                logger.warning("Availability API declined to respond, attempting again with a new session cookie")
+                self._update_session_cookie()
+                response = self._retryable_query(query_url, params)
+                if self.check_if_availability_response_is_declined(response):
+                    raise AvailabilityException
+
             currency = response["currency"]
             trip = response["trips"][0]
             flights = trip['dates'][0]['flights']
@@ -178,9 +200,16 @@ class Ryanair:
                                                                               trip['destinationName'],
                                                                               currency)
                         for flight in flights]
-        except Exception:
-            logger.exception(f"Failed to parse response when querying {query_url}")
+        except RyanairException:
+            logger.exception(f"Failed to parse response when querying {query_url} with parameters {params}")
             return []
+        except Exception:
+            logger.exception(f"Failed to parse response when querying {query_url} with parameters {params}")
+            return []
+
+    @staticmethod
+    def check_if_availability_response_is_declined(response: dict) -> bool:
+        return 'message' in response and response['message'] == 'Availability declined'
 
     @staticmethod
     def _on_query_error(e):
@@ -191,7 +220,11 @@ class Ryanair:
     def _retryable_query(self, url, params):
         self._num_queries += 1
 
-        return requests.get(url, params=params).json()
+        return self.session.get(url, params=params).json()
+
+    def _update_session_cookie(self):
+        # Visit main website to get session cookies
+        self.session.get(Ryanair.BASE_SITE_FOR_SESSION_URL)
 
     def _parse_cheapest_flight(self, flight):
         currency = flight['price']['currencyCode']
@@ -243,7 +276,7 @@ class Ryanair:
             return d.isoformat()
 
     @staticmethod
-    def _format_time_for_api(t):
+    def _format_time_for_api(t: Union[time, str]):
         if isinstance(t, str):
             return t
 
@@ -253,3 +286,14 @@ class Ryanair:
     @property
     def num_queries(self):
         return self._num_queries
+
+    @deprecated(version="2.0.0", reason="deprecated in favour of get_cheapest_flights", action="once")
+    def get_flights(self, airport, date_from, date_to, destination_country=None):
+        return self.get_cheapest_flights(airport, date_from, date_to, destination_country)
+
+    @deprecated(version="2.0.0", reason="deprecated in favour of get_cheapest_return_flights", action="once")
+    def get_return_flights(self, source_airport, date_from, date_to,
+                           return_date_from, return_date_to,
+                           destination_country=None):
+        return self.get_cheapest_return_flights(source_airport, date_from, date_to,
+                                                return_date_from, return_date_to, destination_country)
