@@ -16,15 +16,16 @@ from deprecated import deprecated
 from ryanair.types import Flight, Trip
 
 logger = logging.getLogger("ryanair")
-logger.setLevel(logging.INFO)
+if not logger.handlers and logger.level != logging.NOTSET:
+    logger.setLevel(logging.INFO)
 
-console_handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    "%(asctime)s.%(msecs)03d %(levelname)s:%(message)s", datefmt="%Y-%m-%d %I:%M:%S"
-)
+    console_handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        "%(asctime)s.%(msecs)03d %(levelname)s:%(message)s", datefmt="%Y-%m-%d %I:%M:%S"
+    )
 
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
 
 
 class RyanairException(Exception):

@@ -1,5 +1,12 @@
 # Changelog
 
+# [Unreleased]
+### Changed
+- Module console logging is now only set up if handlers haven't already been specified. 
+
+### Removed
+
+
 # [v2.3.1] - 2023.05.03
 ### Added
 - README warning note for availability API
