@@ -1,6 +1,6 @@
 # Changelog
 
-# [Unreleased]
+# [v2.3.0] - 2023.05.03
 ### Added
 - Optional `destination_airport` keyword argument to the cheap flights endpoints, 
 in case you only care about the cheapest flight to a single airport.
