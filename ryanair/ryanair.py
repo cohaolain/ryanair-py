@@ -44,6 +44,7 @@ class Ryanair:
         self.currency = currency
 
         self._num_queries = 0
+        self.session = requests.Session()
 
     @deprecated(version="2.0.0", reason="deprecated in favour of get_cheapest_flights", action="once")
     def get_flights(self, airport, date_from, date_to, destination_country=None):
@@ -205,7 +206,9 @@ class Ryanair:
     def _retryable_query(self, url, params):
         self._num_queries += 1
 
-        return requests.get(url, params=params).json()
+        # Visit main website to get session cookies
+        self.session.get('https://www.ryanair.com/ie/en')
+        return self.session.get(url, params=params).json()
 
     def _parse_cheapest_flight(self, flight):
         currency = flight['price']['currencyCode']
