@@ -25,6 +25,16 @@ console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
 
+class RyanairException(Exception):
+    def __init__(self, message):
+        super().__init__(f"Ryanair API: {message}")
+
+
+class AvailabilityException(RyanairException):
+    def __init__(self):
+        super().__init__("Availability API declines to provide a result")
+
+
 # noinspection PyBroadException
 class Ryanair:
     BASE_SERVICES_API_URL = "https://services-api.ryanair.com/farfnd/v4/"
@@ -34,6 +44,7 @@ class Ryanair:
         self.currency = currency
 
         self._num_queries = 0
+        self.session = requests.Session()
 
     def get_cheapest_flights(self, airport: str, date_from: Union[datetime, date, str],
                              date_to: Union[datetime, date, str], destination_country: Optional[str] = None,
@@ -165,6 +176,8 @@ class Ryanair:
 
         try:
             response = self._retryable_query(query_url, params)
+            if 'message' in response and response['message'] == 'Availability declined':
+                raise AvailabilityException
             currency = response["currency"]
             trip = response["trips"][0]
             flights = trip['dates'][0]['flights']
@@ -178,6 +191,8 @@ class Ryanair:
                                                                               trip['destinationName'],
                                                                               currency)
                         for flight in flights]
+        except RyanairException as err:
+            logger.error(err)
         except Exception:
             logger.exception(f"Failed to parse response when querying {query_url} with parameters {params}")
             return []
@@ -191,7 +206,9 @@ class Ryanair:
     def _retryable_query(self, url, params):
         self._num_queries += 1
 
-        return requests.get(url, params=params).json()
+        # Visit main website to get session cookies
+        self.session.get('https://www.ryanair.com/ie/en')
+        return self.session.get(url, params=params).json()
 
     def _parse_cheapest_flight(self, flight):
         currency = flight['price']['currencyCode']
