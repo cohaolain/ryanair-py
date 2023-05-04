@@ -6,6 +6,7 @@ or
 This is done directly through Ryanair's API, and does not require an API key.
 """
 import logging
+import os
 from datetime import datetime, date, time
 from typing import Union, Optional
 
@@ -46,6 +47,14 @@ class Ryanair:
 
         self._num_queries = 0
         self.session = requests.Session()
+        proxy = os.environ.get("HTTP_PROXY") or os.environ.get("HTTPS_PROXY")
+        if proxy:
+            proxies = {
+                "http": proxy,
+                "https": proxy
+            }
+            self.session.proxies.update(proxies)
+
         self._update_session_cookie()
 
     def get_cheapest_flights(self, airport: str, date_from: Union[datetime, date, str],
