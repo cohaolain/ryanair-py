@@ -3,11 +3,13 @@
 # [Unreleased]
 ### Added
 - Error handling for airport data loading.
+- Unit testing for some query logic.
 
 ### Changed
 - Module console logging is now only set up if handlers haven't already been specified.
-- `dataclass` usage instead of `namedtuple`
+- `dataclass` usage instead of `namedtuple`.
 - Only load airport data as needed.
+- Separated out concerns to `SessionManager`.
 
 ### Removed
 - **Removed the availability API.**
