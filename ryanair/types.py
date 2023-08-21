@@ -1,16 +1,21 @@
-from collections import namedtuple
+from dataclasses import dataclass
+from datetime import datetime
 
-Flight = namedtuple(
-    "Flight",
-    (
-        "departureTime",
-        "flightNumber",
-        "price",
-        "currency",
-        "origin",
-        "originFull",
-        "destination",
-        "destinationFull",
-    ),
-)
-Trip = namedtuple("Trip", ("totalPrice", "outbound", "inbound"))
+
+@dataclass
+class Flight:
+    departureTime: datetime
+    flightNumber: str
+    price: float
+    currency: str
+    origin: str
+    originFull: str
+    destination: str
+    destinationFull: str
+
+
+@dataclass
+class Trip:
+    totalPrice: float
+    outbound: Flight
+    inbound: Flight
