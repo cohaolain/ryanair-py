@@ -8,7 +8,6 @@ from typing import Union, Optional
 
 import backoff
 import requests
-from deprecated import deprecated
 
 from ryanair.types import Flight, Trip
 
@@ -231,36 +230,3 @@ class Ryanair:
     @property
     def num_queries(self):
         return self._num_queries
-
-    @deprecated(
-        version="2.0.0",
-        reason="deprecated in favour of get_cheapest_flights",
-        action="once",
-    )
-    def get_flights(self, airport, date_from, date_to, destination_country=None):
-        return self.get_cheapest_flights(
-            airport, date_from, date_to, destination_country
-        )
-
-    @deprecated(
-        version="2.0.0",
-        reason="deprecated in favour of get_cheapest_return_flights",
-        action="once",
-    )
-    def get_return_flights(
-            self,
-            source_airport,
-            date_from,
-            date_to,
-            return_date_from,
-            return_date_to,
-            destination_country=None,
-    ):
-        return self.get_cheapest_return_flights(
-            source_airport,
-            date_from,
-            date_to,
-            return_date_from,
-            return_date_to,
-            destination_country,
-        )
