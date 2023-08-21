@@ -10,7 +10,7 @@ setup(
     name="ryanair-py",
     version="2.3.1",
     description="A module which allows you to retrieve data about the cheapest one-way and return flights "
-    "in a date range, or all available flights on a given day for a given route.",
+    "in a date range.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Ciarán Ó hAoláin",
