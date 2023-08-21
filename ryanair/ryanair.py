@@ -9,6 +9,7 @@ from typing import Union, Optional
 import backoff
 import requests
 
+from ryanair.SessionManager import SessionManager
 from ryanair.types import Flight, Trip
 
 logger = logging.getLogger("ryanair")
@@ -32,14 +33,13 @@ class RyanairException(Exception):
 # noinspection PyBroadException
 class Ryanair:
     BASE_SERVICES_API_URL = "https://services-api.ryanair.com/farfnd/v4/"
-    BASE_SITE_FOR_SESSION_URL = "https://www.ryanair.com/ie/en"
 
     def __init__(self, currency: Optional[str] = None):
         self.currency = currency
 
         self._num_queries = 0
-        self.session = requests.Session()
-        self._update_session_cookie()
+        self.session_manager = SessionManager()
+        self.session = self.session_manager.get_session()
 
     def get_cheapest_flights(
             self,
@@ -160,16 +160,16 @@ class Ryanair:
         max_tries=5,
         logger=logger,
         on_giveup=_on_query_error,
-        raise_on_giveup=False,
+        raise_on_giveup=True,
     )
-    def _retryable_query(self, url, params):
-        self._num_queries += 1
-
-        return self.session.get(url, params=params).json()
-
-    def _update_session_cookie(self):
-        # Visit main website to get session cookies
-        self.session.get(Ryanair.BASE_SITE_FOR_SESSION_URL)
+    def _retryable_query(self, url, params=None):
+        try:
+            response = self.session.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            logger.error(f"Error querying {url}: {e}")
+            raise e
 
     def _parse_cheapest_flight(self, flight):
         currency = flight["price"]["currencyCode"]
