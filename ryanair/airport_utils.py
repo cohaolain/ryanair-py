@@ -1,27 +1,48 @@
 import os
-from collections import namedtuple
+from dataclasses import dataclass
 from math import radians, sin, cos, asin, sqrt
 
 import csv
+from typing import Any
 
 from ryanair.types import Flight
 
-Airport = namedtuple("Airport", ("IATA_code", "lat", "lng", "location"))
+AIRPORTS = None
 
-AIRPORTS = {}
-with open(
-    os.path.join(os.path.dirname(__file__), "airports.csv"), newline="", encoding="utf8"
-) as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        iata_code = row["iata_code"]
-        location = ",".join((row["iso_region"], row["iso_country"]))
-        lat = float(row["latitude_deg"])
-        lng = float(row["longitude_deg"])
 
-        AIRPORTS[iata_code] = Airport(
-            IATA_code=iata_code, lat=lat, lng=lng, location=location
-        )
+@dataclass
+class Airport:
+    IATA_code: str
+    lat: float
+    lng: float
+    location: str
+
+
+def load_airports():
+    global AIRPORTS
+    if AIRPORTS is not None:
+        return AIRPORTS
+
+    AIRPORTS = {}
+    try:
+        with open(
+                os.path.join(os.path.dirname(__file__), "airports.csv"), newline="", encoding="utf8"
+        ) as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                row: dict[str, Any] = row
+
+                iata_code = row["iata_code"]
+                location = ",".join((row["iso_region"], row["iso_country"]))
+                lat = float(row["latitude_deg"])
+                lng = float(row["longitude_deg"])
+
+                AIRPORTS[iata_code] = Airport(
+                    IATA_code=iata_code, lat=lat, lng=lng, location=location
+                )
+    except Exception as e:
+        print(f"Error loading airports data: {e}")
+    return AIRPORTS
 
 
 def _haversine(lat1, lon1, lat2, lon2):

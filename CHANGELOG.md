@@ -1,12 +1,16 @@
 # Changelog
 
 # [Unreleased]
+### Added
+- Error handling for airport data loading.
+
 ### Changed
 - Module console logging is now only set up if handlers haven't already been specified.
 - `dataclass` usage instead of `namedtuple`
+- Only load airport data as needed.
 
 ### Removed
-- Removed the availability API.
+- **Removed the availability API.**
   - Unfortunately, grabbing a session cookie is now insufficient to use this API.
 Usage of the API now requires a session cookie to be generated within a "real" browser session.
 I do not wish to add the capability to specifically work around this, seemingly intentional, limitation.
