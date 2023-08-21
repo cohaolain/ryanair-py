@@ -2,7 +2,8 @@
 
 # [Unreleased]
 ### Changed
-- Module console logging is now only set up if handlers haven't already been specified. 
+- Module console logging is now only set up if handlers haven't already been specified.
+- `dataclass` usage instead of `namedtuple`
 
 ### Removed
 - Removed the availability API.
