@@ -1,8 +1,5 @@
 """
-This module allows you to retrieve either
-1) the cheapest flights, with or without return flights, within a fixed set of dates.
-or
-2) all available flights between two locations, on a given date
+This module allows you to retrieve the cheapest flights, with or without return flights, within a fixed set of dates.
 This is done directly through Ryanair's API, and does not require an API key.
 """
 import logging
@@ -33,15 +30,9 @@ class RyanairException(Exception):
         super().__init__(f"Ryanair API: {message}")
 
 
-class AvailabilityException(RyanairException):
-    def __init__(self):
-        super().__init__("Availability API declined to provide a result")
-
-
 # noinspection PyBroadException
 class Ryanair:
     BASE_SERVICES_API_URL = "https://services-api.ryanair.com/farfnd/v4/"
-    BASE_AVAILABILITY_API_URL = "https://www.ryanair.com/api/booking/v4/"
     BASE_SITE_FOR_SESSION_URL = "https://www.ryanair.com/ie/en"
 
     def __init__(self, currency: Optional[str] = None):
@@ -52,16 +43,16 @@ class Ryanair:
         self._update_session_cookie()
 
     def get_cheapest_flights(
-        self,
-        airport: str,
-        date_from: Union[datetime, date, str],
-        date_to: Union[datetime, date, str],
-        destination_country: Optional[str] = None,
-        custom_params: Optional[dict] = None,
-        departure_time_from: Union[str, time] = "00:00",
-        departure_time_to: Union[str, time] = "23:59",
-        max_price: Optional[int] = None,
-        destination_airport: Optional[str] = None,
+            self,
+            airport: str,
+            date_from: Union[datetime, date, str],
+            date_to: Union[datetime, date, str],
+            destination_country: Optional[str] = None,
+            custom_params: Optional[dict] = None,
+            departure_time_from: Union[str, time] = "00:00",
+            departure_time_to: Union[str, time] = "23:59",
+            max_price: Optional[int] = None,
+            destination_airport: Optional[str] = None,
     ):
         query_url = "".join((Ryanair.BASE_SERVICES_API_URL, "oneWayFares"))
 
@@ -97,20 +88,20 @@ class Ryanair:
         return []
 
     def get_cheapest_return_flights(
-        self,
-        source_airport: str,
-        date_from: Union[datetime, date, str],
-        date_to: Union[datetime, date, str],
-        return_date_from: Union[datetime, date, str],
-        return_date_to: Union[datetime, date, str],
-        destination_country: Optional[str] = None,
-        custom_params: Optional[dict] = None,
-        outbound_departure_time_from: Union[str, time] = "00:00",
-        outbound_departure_time_to: Union[str, time] = "23:59",
-        inbound_departure_time_from: Union[str, time] = "00:00",
-        inbound_departure_time_to: Union[str, time] = "23:59",
-        max_price: Optional[int] = None,
-        destination_airport: Optional[str] = None,
+            self,
+            source_airport: str,
+            date_from: Union[datetime, date, str],
+            date_to: Union[datetime, date, str],
+            return_date_from: Union[datetime, date, str],
+            return_date_to: Union[datetime, date, str],
+            destination_country: Optional[str] = None,
+            custom_params: Optional[dict] = None,
+            outbound_departure_time_from: Union[str, time] = "00:00",
+            outbound_departure_time_to: Union[str, time] = "23:59",
+            inbound_departure_time_from: Union[str, time] = "00:00",
+            inbound_departure_time_to: Union[str, time] = "23:59",
+            max_price: Optional[int] = None,
+            destination_airport: Optional[str] = None,
     ):
         query_url = "".join((Ryanair.BASE_SERVICES_API_URL, "roundTripFares"))
 
@@ -159,91 +150,6 @@ class Ryanair:
             ]
         else:
             return []
-
-    def get_all_flights(
-        self,
-        origin_airport: str,
-        date_out: Union[datetime, date, str],
-        destination: str,
-        locale: str = "en-ie",
-        origin_is_mac: bool = False,
-        destination_is_mac: bool = False,
-        custom_params: Optional[dict] = None,
-    ):
-        query_url = "".join(
-            (Ryanair.BASE_AVAILABILITY_API_URL, f"{locale}/availability")
-        )
-
-        params = {
-            # Assume single adult ticket only
-            "ADT": 1,
-            "TEEN": 0,
-            "CHD": 0,
-            "INF": 0,
-            "DateOut": self._format_date_for_api(date_out),
-            "DateIn": "",
-            "Origin": origin_airport,
-            "Destination": destination,
-            "OriginIsMac": origin_is_mac,
-            "DestinationIsMac": destination_is_mac,
-            "IncludeConnectingFlights": False,  # What? You do that?
-            "ToUs": "AGREED",
-            # Presently unused, but these and others can be set by custom_params
-            # "Disc": 0,
-            # "promoCode": "",
-            # "FlexDaysBeforeOut": 2,
-            # "FlexDaysOut": 2,
-            # "FlexDaysBeforeIn": 2,
-            # "FlexDaysIn": 2,
-            # "RoundTrip": false,
-        }
-
-        if custom_params:
-            params.update(custom_params)
-
-        try:
-            # Try once to get a new session cookie, just in case the old one has expired.
-            # If that fails too, we should raise the exception.
-            response = self._retryable_query(query_url, params)
-            if self.check_if_availability_response_is_declined(response):
-                logger.warning(
-                    "Availability API declined to respond, attempting again with a new session cookie"
-                )
-                self._update_session_cookie()
-                response = self._retryable_query(query_url, params)
-                if self.check_if_availability_response_is_declined(response):
-                    raise AvailabilityException
-
-            currency = response["currency"]
-            trip = response["trips"][0]
-            flights = trip["dates"][0]["flights"]
-            if flights:
-                if self.currency and self.currency != currency:
-                    logger.warning(
-                        f"Configured to fetch fares in {self.currency} but availability API doesn't support"
-                        f" specifying the currency, so it responded with fares in {currency}"
-                    )
-
-                return [
-                    self._parse_all_flights_availability_result_as_flight(
-                        flight, trip["originName"], trip["destinationName"], currency
-                    )
-                    for flight in flights
-                ]
-        except RyanairException:
-            logger.exception(
-                f"Failed to parse response when querying {query_url} with parameters {params}"
-            )
-            return []
-        except Exception:
-            logger.exception(
-                f"Failed to parse response when querying {query_url} with parameters {params}"
-            )
-            return []
-
-    @staticmethod
-    def check_if_availability_response_is_declined(response: dict) -> bool:
-        return "message" in response and response["message"] == "Availability declined"
 
     @staticmethod
     def _on_query_error(e):
@@ -304,23 +210,6 @@ class Ryanair:
         )
 
     @staticmethod
-    def _parse_all_flights_availability_result_as_flight(
-        response, origin_full, destination_full, currency
-    ):
-        return Flight(
-            departureTime=datetime.fromisoformat(response["time"][0]),
-            flightNumber=response["flightNumber"],
-            price=response["regularFare"]["fares"][0]["amount"]
-            if response["faresLeft"] != 0
-            else float("inf"),
-            currency=currency,
-            origin=response["segments"][0]["origin"],
-            originFull=origin_full,
-            destination=response["segments"][0]["destination"],
-            destinationFull=destination_full,
-        )
-
-    @staticmethod
     def _format_date_for_api(d: Union[datetime, date, str]):
         if isinstance(d, str):
             return d
@@ -359,13 +248,13 @@ class Ryanair:
         action="once",
     )
     def get_return_flights(
-        self,
-        source_airport,
-        date_from,
-        date_to,
-        return_date_from,
-        return_date_to,
-        destination_country=None,
+            self,
+            source_airport,
+            date_from,
+            date_to,
+            return_date_from,
+            return_date_to,
+            destination_country=None,
     ):
         return self.get_cheapest_return_flights(
             source_airport,
