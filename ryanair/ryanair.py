@@ -77,7 +77,7 @@ class Ryanair:
             response = self._retryable_query(query_url, params)["fares"]
         except Exception:
             logger.exception(f"Failed to parse response when querying {query_url}")
-            return []
+            raise
 
         if response:
             return [
@@ -134,11 +134,7 @@ class Ryanair:
         if custom_params:
             params.update(custom_params)
 
-        try:
-            response = self._retryable_query(query_url, params)["fares"]
-        except Exception as e:
-            logger.exception(f"Failed to parse response when querying {query_url}")
-            return []
+        response = self._retryable_query(query_url, params)["fares"]
 
         if response:
             return [
@@ -154,6 +150,9 @@ class Ryanair:
     def _on_query_error(e):
         logger.exception(f"Gave up retrying query, last exception was {e}")
 
+    def _get_max_backoff_time() -> int:
+        return 5
+
     @backoff.on_exception(
         backoff.expo,
         Exception,
@@ -161,15 +160,12 @@ class Ryanair:
         logger=logger,
         on_giveup=_on_query_error,
         raise_on_giveup=True,
+        max_time=_get_max_backoff_time
     )
     def _retryable_query(self, url, params=None):
-        try:
-            response = self.session.get(url, params=params)
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            logger.error(f"Error querying {url}: {e}")
-            raise e
+        response = self.session.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
 
     def _parse_cheapest_flight(self, flight):
         currency = flight["price"]["currencyCode"]
