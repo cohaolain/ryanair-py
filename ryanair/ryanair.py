@@ -160,7 +160,7 @@ class Ryanair:
         logger=logger,
         on_giveup=_on_query_error,
         raise_on_giveup=True,
-        max_time=_get_max_backoff_time
+        max_time=_get_max_backoff_time,
     )
     def _retryable_query(self, url, params=None):
         response = self.session.get(url, params=params)

@@ -374,9 +374,9 @@ class TestRyanair(unittest.TestCase):
         with self.assertRaises(requests.HTTPError):
             ryanair_instance.get_cheapest_flights("DUB", "2023-09-01", "2023-09-30")
 
-        mock_logger.error.assert_called_once_with("Failed to parse response when querying")
-
-
+        mock_logger.error.assert_called_once_with(
+            "Failed to parse response when querying"
+        )
 
 
 if __name__ == "__main__":
