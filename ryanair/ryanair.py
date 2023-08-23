@@ -162,6 +162,7 @@ class Ryanair:
         on_giveup=_on_query_error,
     )
     def _retryable_query(self, url, params=None):
+        self._num_queries += 1
         response = self.session.get(url, params=params)
         response.raise_for_status()
         return response.json()
