@@ -2,6 +2,7 @@ __pycache__
 build
 dist
 ryanair_py.egg-info
+.coverage
 
 *.iml
 inspectionProfiles
