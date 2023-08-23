@@ -26,3 +26,6 @@ jobs:
         pip install -r requirements.txt -r requirements.dev.txt
     - name: Black
       run: black --check --verbose -- .
+    - name: Run unit testing with pytest
+      run: |
+        pytest
