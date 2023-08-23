@@ -28,4 +28,9 @@ jobs:
       run: black --check --verbose -- .
     - name: Run unit testing with pytest
       run: |
-        pytest
+        pytest --cov --cov-report xml
+    - name: Coveralls GitHub Action
+      uses: coverallsapp/github-action@v2
+      with:
+        path-to-lcov: coverage.xml
+
