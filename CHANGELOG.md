@@ -1,6 +1,6 @@
 # Changelog
 
-# [Unreleased]
+# [v3.0.0] - 2023.09.18
 ### Added
 - Error handling for airport data loading.
 - Unit testing for main endpoints parsing, internal retryable queries w/ backoff, error handling and logging. 
