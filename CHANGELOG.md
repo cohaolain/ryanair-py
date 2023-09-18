@@ -1,5 +1,27 @@
 # Changelog
 
+# [v3.0.0] - 2023.09.18
+### Added
+- Error handling for airport data loading.
+- Unit testing for main endpoints parsing, internal retryable queries w/ backoff, error handling and logging. 
+
+### Changed
+- Module console logging is now only set up if handlers haven't already been specified.
+- `dataclass` usage instead of `namedtuple`.
+- Only load airport data as needed.
+- Separated out concerns to `SessionManager`.
+- Less redundant logging.
+- Propagate up exceptions if all retries fail. 
+
+### Removed
+- **Removed the availability API.**
+  - Unfortunately, grabbing a session cookie is now insufficient to use this API.
+Usage of the API now requires a session cookie to be generated within a "real" browser session.
+I do not wish to add the capability to specifically work around this, seemingly intentional, limitation.
+  - With all this in mind, I've decided to regrettably remove the ability to use this endpoint from the library, 
+since it will fail in most cases without such a workaround implemented.
+- Methods deprecated in v2.0.0 have now been completely removed.
+
 # [v2.3.1] - 2023.05.03
 ### Added
 - README warning note for availability API
