@@ -142,25 +142,38 @@ class Ryanair:
         else:
             return []
 
-    @staticmethod
-    def _get_backoff_type():
+    def get_backoff_type():
         if "unittest" in sys.modules.keys():
             return backoff.constant(interval=0)
+        else:
+            return backoff.expo
 
-        return backoff.expo()
-
-    @staticmethod
+    
     def _on_query_error(e):
         logger.exception(f"Gave up retrying query, last exception was {e}")
 
+    @staticmethod
+    def _call_handlers(hdlrs, target, args, kwargs, tries, elapsed, **extra):
+        details = {
+            'target': target,
+            'args': args,
+            'kwargs': kwargs,
+            'tries': tries,
+            'elapsed': elapsed,
+        }
+        details.update(extra)
+        for hdlr in hdlrs:
+            hdlr(details)
+            logger.exception(details)
     @backoff.on_exception(
-        _get_backoff_type,
+        get_backoff_type,
         Exception,
         max_tries=5,
         logger=logger,
         raise_on_giveup=True,
         on_giveup=_on_query_error,
     )
+
     def _retryable_query(self, url, params=None):
         self._num_queries += 1
         response = self.session.get(url, params=params)
