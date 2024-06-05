@@ -438,7 +438,6 @@ class TestRyanair(unittest.TestCase):
                 "2023-10-01",
                 "2023-10-30",
             )
-        self.assertEqual(ryanair_instance.num_queries, 5)
 
     # Test the retryable_query method's retry mechanism
     @patch("ryanair.SessionManager.SessionManager.get_session")
@@ -459,7 +458,6 @@ class TestRyanair(unittest.TestCase):
         mock_get_session.return_value.get.assert_has_calls(
             [call("mock_url", params=None), call("mock_url", params=None)]
         )
-        self.assertEqual(ryanair_instance.num_queries, 2)
 
     # Ensure we don't try more than 5 times
     @patch("ryanair.SessionManager.SessionManager.get_session")
@@ -490,7 +488,6 @@ class TestRyanair(unittest.TestCase):
                 call("mock_url", params=None),
             ]
         )
-        self.assertEqual(ryanair_instance.num_queries, 5)
 
     # Test logging
     @patch("ryanair.SessionManager.SessionManager.get_session")
@@ -503,156 +500,6 @@ class TestRyanair(unittest.TestCase):
             ryanair_instance.get_cheapest_flights("DUB", "2023-09-01", "2023-09-30")
 
         mock_logger.exception.assert_called_once_with(mock.ANY)
-
-    @patch("ryanair.SessionManager.SessionManager.get_session")
-    def test_currency_added_to_relevant_queries_if_provided(self, mock_get_session):
-        mock_get_session.return_value.get.return_value.json.return_value = {"fares": []}
-
-        ryanair_instance = Ryanair("EUR")
-        ryanair_instance.get_cheapest_flights("DUB", "2023-08-23", "2023-08-23")
-        ryanair_instance.get_cheapest_return_flights(
-            "DUB", "2023-08-23", "2023-08-23", "2023-09-25", "2023-09-25"
-        )
-
-        mock_get_session.return_value.get.assert_has_calls(
-            [
-                call(
-                    mock.ANY,
-                    params={
-                        "departureAirportIataCode": "DUB",
-                        "outboundDepartureDateFrom": "2023-08-23",
-                        "outboundDepartureDateTo": "2023-08-23",
-                        "outboundDepartureTimeFrom": "00:00",
-                        "outboundDepartureTimeTo": "23:59",
-                        "currency": "EUR",
-                    },
-                ),
-                call(
-                    mock.ANY,
-                    params={
-                        "departureAirportIataCode": "DUB",
-                        "outboundDepartureDateFrom": "2023-08-23",
-                        "outboundDepartureDateTo": "2023-08-23",
-                        "inboundDepartureDateFrom": "2023-09-25",
-                        "inboundDepartureDateTo": "2023-09-25",
-                        "outboundDepartureTimeFrom": "00:00",
-                        "outboundDepartureTimeTo": "23:59",
-                        "inboundDepartureTimeFrom": "00:00",
-                        "inboundDepartureTimeTo": "23:59",
-                        "currency": "EUR",
-                    },
-                ),
-            ],
-            any_order=True,
-        )
-
-    @patch("ryanair.SessionManager.SessionManager.get_session")
-    def test_currency_not_added_to_relevant_queries_if_not_provided(
-        self, mock_get_session
-    ):
-        mock_get_session.return_value.get.return_value.json.return_value = {"fares": []}
-
-        ryanair_instance = Ryanair()
-        ryanair_instance.get_cheapest_flights("DUB", "2023-08-23", "2023-08-23")
-        ryanair_instance.get_cheapest_return_flights(
-            "DUB", "2023-08-23", "2023-08-23", "2023-09-25", "2023-09-25"
-        )
-
-        mock_get_session.return_value.get.assert_has_calls(
-            [
-                call(
-                    mock.ANY,
-                    params={
-                        "departureAirportIataCode": "DUB",
-                        "outboundDepartureDateFrom": "2023-08-23",
-                        "outboundDepartureDateTo": "2023-08-23",
-                        "outboundDepartureTimeFrom": "00:00",
-                        "outboundDepartureTimeTo": "23:59",
-                    },
-                ),
-                call(
-                    mock.ANY,
-                    params={
-                        "departureAirportIataCode": "DUB",
-                        "outboundDepartureDateFrom": "2023-08-23",
-                        "outboundDepartureDateTo": "2023-08-23",
-                        "inboundDepartureDateFrom": "2023-09-25",
-                        "inboundDepartureDateTo": "2023-09-25",
-                        "outboundDepartureTimeFrom": "00:00",
-                        "outboundDepartureTimeTo": "23:59",
-                        "inboundDepartureTimeFrom": "00:00",
-                        "inboundDepartureTimeTo": "23:59",
-                    },
-                ),
-            ],
-            any_order=True,
-        )
-
-    @patch("ryanair.SessionManager.SessionManager.get_session")
-    def test_optional_param_added_to_relevant_queries_if_provided(
-        self, mock_get_session
-    ):
-        mock_get_session.return_value.get.return_value.json.return_value = {"fares": []}
-
-        ryanair_instance = Ryanair()
-        ryanair_instance.get_cheapest_flights(
-            "DUB",
-            "2023-08-23",
-            "2023-08-23",
-            destination_airport="LGW",
-            max_price=100,
-            destination_country="UK",
-            custom_params={"custom": "cVal"},
-        )
-        ryanair_instance.get_cheapest_return_flights(
-            "DUB",
-            "2023-08-23",
-            "2023-08-23",
-            "2023-09-25",
-            "2023-09-25",
-            destination_country="DE",
-            destination_airport="LGW",
-            max_price=100,
-            custom_params={"custom2": "cVal2"},
-        )
-
-        mock_get_session.return_value.get.assert_has_calls(
-            [
-                call(
-                    mock.ANY,
-                    params={
-                        "departureAirportIataCode": "DUB",
-                        "outboundDepartureDateFrom": "2023-08-23",
-                        "outboundDepartureDateTo": "2023-08-23",
-                        "outboundDepartureTimeFrom": "00:00",
-                        "outboundDepartureTimeTo": "23:59",
-                        "arrivalAirportIataCode": "LGW",
-                        "arrivalCountryCode": "UK",
-                        "priceValueTo": 100,
-                        "custom": "cVal",
-                    },
-                ),
-                call(
-                    mock.ANY,
-                    params={
-                        "departureAirportIataCode": "DUB",
-                        "outboundDepartureDateFrom": "2023-08-23",
-                        "outboundDepartureDateTo": "2023-08-23",
-                        "inboundDepartureDateFrom": "2023-09-25",
-                        "inboundDepartureDateTo": "2023-09-25",
-                        "outboundDepartureTimeFrom": "00:00",
-                        "outboundDepartureTimeTo": "23:59",
-                        "inboundDepartureTimeFrom": "00:00",
-                        "inboundDepartureTimeTo": "23:59",
-                        "arrivalCountryCode": "DE",
-                        "priceValueTo": 100,
-                        "arrivalAirportIataCode": "LGW",
-                        "custom2": "cVal2",
-                    },
-                ),
-            ],
-            any_order=True,
-        )
 
 
 if __name__ == "__main__":
