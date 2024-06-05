@@ -5,12 +5,6 @@
 - Module console logging is now only set up if handlers haven't already been specified. 
 
 ### Removed
-- Removed the availability API.
-  - Unfortunately, grabbing a session cookie is now insufficient to use this API.
-Usage of the API now requires a session cookie to be generated within a "real" browser session.
-I do not wish to add the capability to specifically work around this, seemingly intentional, limitation.
-  - With all this in mind, I've decided to regrettably remove the ability to use this endpoint from the library, 
-since it will fail in most cases without such a workaround implemented.
 
 
 # [v2.3.1] - 2023.05.03
