@@ -224,5 +224,5 @@ class Ryanair:
             return t.strftime("%H:%M")
 
     @property
-    def num_queries(self) -> __init__:
+    def num_queries(self):
         return self._num_queries
