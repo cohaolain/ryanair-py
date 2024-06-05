@@ -3,11 +3,11 @@ This module allows you to retrieve the cheapest flights, with or without return 
 This is done directly through Ryanair's API, and does not require an API key.
 """
 import logging
-import sys
 from datetime import datetime, date, time
 from typing import Union, Optional
 
 import backoff
+import requests
 
 from ryanair.SessionManager import SessionManager
 from ryanair.types import Flight, Trip
@@ -73,7 +73,11 @@ class Ryanair:
         if custom_params:
             params.update(custom_params)
 
-        response = self._retryable_query(query_url, params)["fares"]
+        try:
+            response = self._retryable_query(query_url, params)["fares"]
+        except Exception:
+            logger.exception(f"Failed to parse response when querying {query_url}")
+            return []
 
         if response:
             return [
@@ -130,7 +134,11 @@ class Ryanair:
         if custom_params:
             params.update(custom_params)
 
-        response = self._retryable_query(query_url, params)["fares"]
+        try:
+            response = self._retryable_query(query_url, params)["fares"]
+        except Exception as e:
+            logger.exception(f"Failed to parse response when querying {query_url}")
+            return []
 
         if response:
             return [
@@ -143,28 +151,25 @@ class Ryanair:
             return []
 
     @staticmethod
-    def _get_backoff_type():
-        if "unittest" in sys.modules.keys():
-            return backoff.constant(interval=0)
-
-        return backoff.expo()
-
-    @staticmethod
     def _on_query_error(e):
         logger.exception(f"Gave up retrying query, last exception was {e}")
 
     @backoff.on_exception(
-        _get_backoff_type,
+        backoff.expo,
         Exception,
         max_tries=5,
         logger=logger,
-        raise_on_giveup=True,
         on_giveup=_on_query_error,
+        raise_on_giveup=True,
     )
     def _retryable_query(self, url, params=None):
-        response = self.session.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = self.session.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            logger.error(f"Error querying {url}: {e}")
+            raise e
 
     def _parse_cheapest_flight(self, flight):
         currency = flight["price"]["currencyCode"]
