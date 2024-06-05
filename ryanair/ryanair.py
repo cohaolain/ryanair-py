@@ -16,7 +16,7 @@ from deprecated import deprecated
 from ryanair.types import Flight, Trip
 
 logger = logging.getLogger("ryanair")
-if not logger.handlers:
+if not logger.handlers and logger.level != logging.NOTSET:
     logger.setLevel(logging.INFO)
 
     console_handler = logging.StreamHandler()
