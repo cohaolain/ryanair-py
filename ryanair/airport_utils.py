@@ -26,9 +26,7 @@ def load_airports():
     AIRPORTS = {}
     try:
         with open(
-            os.path.join(os.path.dirname(__file__), "airports.csv"),
-            newline="",
-            encoding="utf8",
+                os.path.join(os.path.dirname(__file__), "airports.csv"), newline="", encoding="utf8"
         ) as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:

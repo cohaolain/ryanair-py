@@ -42,16 +42,16 @@ class Ryanair:
         self.session = self.session_manager.get_session()
 
     def get_cheapest_flights(
-        self,
-        airport: str,
-        date_from: Union[datetime, date, str],
-        date_to: Union[datetime, date, str],
-        destination_country: Optional[str] = None,
-        custom_params: Optional[dict] = None,
-        departure_time_from: Union[str, time] = "00:00",
-        departure_time_to: Union[str, time] = "23:59",
-        max_price: Optional[int] = None,
-        destination_airport: Optional[str] = None,
+            self,
+            airport: str,
+            date_from: Union[datetime, date, str],
+            date_to: Union[datetime, date, str],
+            destination_country: Optional[str] = None,
+            custom_params: Optional[dict] = None,
+            departure_time_from: Union[str, time] = "00:00",
+            departure_time_to: Union[str, time] = "23:59",
+            max_price: Optional[int] = None,
+            destination_airport: Optional[str] = None,
     ):
         query_url = "".join((Ryanair.BASE_SERVICES_API_URL, "oneWayFares"))
 
@@ -87,20 +87,20 @@ class Ryanair:
         return []
 
     def get_cheapest_return_flights(
-        self,
-        source_airport: str,
-        date_from: Union[datetime, date, str],
-        date_to: Union[datetime, date, str],
-        return_date_from: Union[datetime, date, str],
-        return_date_to: Union[datetime, date, str],
-        destination_country: Optional[str] = None,
-        custom_params: Optional[dict] = None,
-        outbound_departure_time_from: Union[str, time] = "00:00",
-        outbound_departure_time_to: Union[str, time] = "23:59",
-        inbound_departure_time_from: Union[str, time] = "00:00",
-        inbound_departure_time_to: Union[str, time] = "23:59",
-        max_price: Optional[int] = None,
-        destination_airport: Optional[str] = None,
+            self,
+            source_airport: str,
+            date_from: Union[datetime, date, str],
+            date_to: Union[datetime, date, str],
+            return_date_from: Union[datetime, date, str],
+            return_date_to: Union[datetime, date, str],
+            destination_country: Optional[str] = None,
+            custom_params: Optional[dict] = None,
+            outbound_departure_time_from: Union[str, time] = "00:00",
+            outbound_departure_time_to: Union[str, time] = "23:59",
+            inbound_departure_time_from: Union[str, time] = "00:00",
+            inbound_departure_time_to: Union[str, time] = "23:59",
+            max_price: Optional[int] = None,
+            destination_airport: Optional[str] = None,
     ):
         query_url = "".join((Ryanair.BASE_SERVICES_API_URL, "roundTripFares"))
 
