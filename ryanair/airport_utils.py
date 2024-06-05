@@ -9,19 +9,15 @@ from ryanair.types import Flight
 Airport = namedtuple("Airport", ("IATA_code", "lat", "lng", "location"))
 
 AIRPORTS = {}
-with open(
-    os.path.join(os.path.dirname(__file__), "airports.csv"), newline="", encoding="utf8"
-) as csvfile:
+with open(os.path.join(os.path.dirname(__file__), 'airports.csv'), newline='', encoding="utf8") as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         iata_code = row["iata_code"]
-        location = ",".join((row["iso_region"], row["iso_country"]))
+        location = ','.join((row["iso_region"], row["iso_country"]))
         lat = float(row["latitude_deg"])
         lng = float(row["longitude_deg"])
 
-        AIRPORTS[iata_code] = Airport(
-            IATA_code=iata_code, lat=lat, lng=lng, location=location
-        )
+        AIRPORTS[iata_code] = Airport(IATA_code=iata_code, lat=lat, lng=lng, location=location)
 
 
 def _haversine(lat1, lon1, lat2, lon2):
