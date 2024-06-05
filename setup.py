@@ -8,7 +8,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="ryanair-py",
-    version="3.0.0",
+    version="2.3.1",
     description="A module which allows you to retrieve data about the cheapest one-way and return flights "
     "in a date range.",
     long_description=long_description,
