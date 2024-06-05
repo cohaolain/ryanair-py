@@ -16,7 +16,7 @@ Usage of the API now requires a session cookie to be generated within a "real" b
 I do not wish to add the capability to specifically work around this, seemingly intentional, limitation.
   - With all this in mind, I've decided to regrettably remove the ability to use this endpoint from the library, 
 since it will fail in most cases without such a workaround implemented.
-- Methods deprecated in v2.0.0 have now been completely removed.
+
 
 # [v2.3.1] - 2023.05.03
 ### Added

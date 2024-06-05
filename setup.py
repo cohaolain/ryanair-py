@@ -21,6 +21,6 @@ setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
-    install_requires=["requests", "backoff"],
+    install_requires=["requests", "Deprecated", "backoff"],
     package_data={"ryanair": ["airports.csv"]},
 )
